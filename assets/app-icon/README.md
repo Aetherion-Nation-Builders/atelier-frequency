@@ -1,44 +1,22 @@
-# SoundCraft app icon (placeholder)
+# Atelier Frequency app icon
 
-**A nightingale singing**, as an engraving-style head-and-shoulders portrait in the Crafting Apps'
-owl-template framing (craftrules `standards/icon-design.md`): a full-bleed colour field, the bird
-in three-quarter view with its bill open and its eye on the viewer, its breast and wing running off
-the bottom and right edges, three song arcs leaving the bill.
-
-This is a **placeholder** until the owner draws SoundCraft's icon in ArtCraft like the other apps'
-icons. Replace `icon.svg` and run `packaging/icons.sh`; nothing else needs to change.
-
-## Palette
-
-Exactly three colours:
+**The hidden sun behind a waveform**: an ivory disc with an ochre waveform crossing its lower
+half, on a volcanic black field. Three colours, from the Nation's palette:
 
 | Colour | Hex | Used for |
 |---|---|---|
-| Ink | `#0b0b0c` | Line work and contour |
-| Paper | `#efe9dc` | The bird and the song arcs |
-| SoundCraft teal (app colour) | `#14a9c4` | The full-bleed background field |
+| Volcanic black | `#141210` | the field, and the gap that separates the waveform from the sun |
+| Ivory | `#efe6d2` | the sun |
+| Ochre | `#d9a441` | the waveform |
 
-## Geometry
+**Tile:** `viewBox="0 0 512 512"`, a rounded square with `rx=112`, as all the Atelier icons. The
+macOS files add Apple's 824/1024 margin (`soundcraft-macos-512.png`, `.icns`); the others are the
+full tile. `icon.svg` is the master; the file names keep their upstream `soundcraft` names so
+packaging stays untouched.
 
-A 512 × 512 viewBox, clipped to a rounded square with `rx=112`. Windows and Linux use the full
-tile. The macOS icons (`soundcraft.icns`, `soundcraft-macos-512.png`) sit on Apple's grid: an
-824/1024 body with a transparent margin.
+**Provenance:** drawn for Atelier Frequency by hand as SVG (2026). It replaces SoundCraft's
+placeholder nightingale, which stays in SoundCraft's own repository. Licence: MIT OR Apache-2.0,
+like the code; the Atelier and Aetherion names are not covered by it.
 
-## Provenance and licence
-
-Drawn from scratch as hand-placed SVG paths by the SoundCraft contributors; no source image was
-traced or copied. MIT OR Apache-2.0, like the code (see `ATTRIBUTION.md`).
-
-## Files
-
-| File | What it is |
-|---|---|
-| `icon.svg` | The canonical vector |
-| `soundcraft-1024.png` | 1024 px render |
-| `soundcraft-macos-512.png` | Runtime window/Dock icon on macOS (Apple grid margin) |
-| `soundcraft.icns` | macOS bundle icon |
-| `soundcraft.ico` | Windows icon (16–256 px), embedded in `soundcraft.exe` and used by the MSI |
-| `hicolor/<size>x<size>/apps/ai.storyteller.soundcraft.png` | Linux/FreeBSD icon theme, 16–512 px, plus `scalable/` |
-
-Regenerate everything with `packaging/icons.sh` (needs `resvg`, and `iconutil` on macOS for the
-`.icns`).
+**Regenerating:** `packaging/icons.sh` (needs resvg; iconutil on macOS for the .icns). The
+committed renders were made from the same SVG with cairosvg and Pillow.
