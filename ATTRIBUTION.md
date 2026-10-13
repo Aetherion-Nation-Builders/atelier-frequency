@@ -30,7 +30,7 @@ and, at runtime, the operating system's own UI fonts when available (never redis
 | Path | Author | Source | License |
 |---|---|---|---|
 | `assets/app-icon/icon.svg` | Aetherion Nation, for Atelier | original: the hidden sun behind a waveform, drawn as SVG (`assets/app-icon/README.md`) | MIT OR Apache-2.0 |
-| `packaging/macos/dmg/` (all files) | @XusBadia | original (macOS DMG window background and layout, from the app icon; see `packaging/macos/dmg/README.md`) | MIT OR Apache-2.0 |
+| `packaging/macos/dmg/` (all files) | Atelier Frequency contributors (Aetherion Nation); layout and `generate.py` by @XusBadia (upstream) | original (Atelier Frequency's DMG window background, written by `atelier-background.py` from the app icon with text outlined from Archivo and Geist Mono, OFL-1.1; and the Finder layout; see `packaging/macos/dmg/README.md`) | MIT OR Apache-2.0 |
 | `assets/app-icon/soundcraft-1024.png` | Aetherion Nation, for Atelier | original, rendered from `icon.svg` with cairosvg and Pillow | MIT OR Apache-2.0 |
 | `assets/app-icon/soundcraft-macos-512.png` | Aetherion Nation, for Atelier | original, rendered from `icon.svg` with cairosvg and Pillow | MIT OR Apache-2.0 |
 | `assets/app-icon/soundcraft.icns` | Aetherion Nation, for Atelier | original, rendered from `icon.svg` with cairosvg and Pillow | MIT OR Apache-2.0 |
