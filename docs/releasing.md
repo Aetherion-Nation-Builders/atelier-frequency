@@ -1,5 +1,14 @@
 # Releasing SoundCraft
 
+> **Atelier Frequency, for now:** a release builds the **macOS DMG only**, on GitHub's standard
+> macOS runner, **unsigned** (ad-hoc signed, not notarized) until the Apple signing secrets below
+> are added. The other platforms build again when listed in the repository variable
+> `ATELIER_RELEASE_PLATFORMS` (for example `windows linux freebsd web`). The draft is named
+> `Atelier Frequency v<version>`; publish it to make it the release Atelier Gate installs. To cut one
+> without the `release` branch: **Actions › Release › Run workflow** on `main`. An unsigned app
+> downloaded in a browser opens the first time through **System Settings › Privacy & Security ›
+> Open Anyway** (macOS 15). The rest of this page is upstream's guide.
+
 Every push to the `release` branch runs `.github/workflows/release.yml`. The workflow builds
 signed installers for macOS, Windows, Linux, FreeBSD and the web, then creates or updates a
 **draft** GitHub Release named `SoundCraft v<version>`. Nobody sees a draft until a maintainer
@@ -80,7 +89,7 @@ plugins), and WebAudio in the browser.
 ### macOS
 
 `packaging/macos/package.sh` builds `aarch64-apple-darwin` and `x86_64-apple-darwin` with
-`MACOSX_DEPLOYMENT_TARGET=11.0`, joins them with `lipo`, and assembles `SoundCraft.app`:
+`MACOSX_DEPLOYMENT_TARGET=11.0`, joins them with `lipo`, and assembles `Atelier Frequency.app` (its executable and icon file inside keep the machine name `SoundCraft`):
 
 - `Info.plist` is generated from `Info.plist.in`. The bundle id is `ai.storyteller.soundcraft`.
   It declares the `.scraft` session type (`ai.storyteller.soundcraft.session`, MIME
@@ -95,7 +104,7 @@ plugins), and WebAudio in the browser.
   ticket is stapled to the app. The app goes on a DMG (`hdiutil`, with an `Applications` link).
   The DMG is signed, notarized and stapled too.
   Its Finder window (background, icon size and positions) comes from
-  [`packaging/macos/dmg/`](../packaging/macos/dmg/README.md), and its volume is named `SoundCraft`
+  [`packaging/macos/dmg/`](../packaging/macos/dmg/README.md), and its volume is named `Atelier Frequency`
   without the version, which the window's background needs; the DMG file name keeps the version.
 - **CLI:** the universal `soundcraft-cli` is signed with the hardened runtime, zipped and
   notarized.
