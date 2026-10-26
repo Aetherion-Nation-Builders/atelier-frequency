@@ -23,6 +23,7 @@ deliberate pass.
 |---|---|
 | Window title, settings folder, file dialogs | `apps/soundcraft/src/main.rs` |
 | macOS app menu | `apps/soundcraft/src/native_menu.rs` |
+| Software updates (Help › Check for Updates): our releases, shown as Atelier Frequency | `crates/ui-egui/src/updates_ui.rs` (`UPDATE_APP`, also used by `apps/soundcraft/src/main.rs`) |
 | In-window menu and About box, with the Nation links | `crates/ui-egui/src/menus.rs`, `crates/ui-egui/src/panels.rs` |
 | Windows file properties | `apps/soundcraft/build.rs` |
 | macOS bundle | `packaging/macos/Info.plist.in` (display name, copyright, microphone prompt; identifier unchanged) |
