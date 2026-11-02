@@ -46,4 +46,5 @@ here. The subset uses default_fonts; the parent face uses monochrome_emoji_fonts
 | `assets/app-icon/soundcraft.icns` | Aetherion Nation, for Atelier | original, rendered from `icon.svg` with cairosvg and Pillow | MIT OR Apache-2.0 |
 | `assets/app-icon/soundcraft.ico` | Aetherion Nation, for Atelier | original, rendered from `icon.svg` with cairosvg and Pillow | MIT OR Apache-2.0 |
 | `assets/app-icon/hicolor/` | Aetherion Nation, for Atelier | original, rendered from `icon.svg` with cairosvg and Pillow (16–512 px PNGs and the scalable SVG) | MIT OR Apache-2.0 |
+| `crates/audio-io/tests/fixtures/` | SoundCraft contributors | original test tones and silence generated with ffmpeg (sine) or by hand; commands in `crates/audio-io/tests/fixtures/README.md` | MIT OR Apache-2.0 |
 | `docs/images/` | SoundCraft contributors | screenshots of SoundCraft rendered from the synthesised demo session | MIT OR Apache-2.0 |
