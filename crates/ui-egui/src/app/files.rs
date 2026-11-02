@@ -105,9 +105,9 @@ impl SoundApp {
         self.panic_rev = self.engine.revision;
         let saved = self.engine.is_dirty() && self.write_autosave();
         self.ui.status = if saved {
-            "SoundCraft hit an internal error (see the log). Your changes were autosaved: save them, then restart SoundCraft.".into()
+            "Atelier Frequency hit an internal error (see the log). Your changes were autosaved: save them, then restart Atelier Frequency.".into()
         } else {
-            "SoundCraft hit an internal error (see the log). Restart SoundCraft to be safe.".into()
+            "Atelier Frequency hit an internal error (see the log). Restart Atelier Frequency to be safe.".into()
         };
     }
 

@@ -16,7 +16,12 @@ pub const UPDATE_APP: craft_update::app::App = craft_update::app::App {
     icon_png: Some(include_bytes!("../../../assets/app-icon/hicolor/128x128/apps/ai.storyteller.soundcraft.png")),
     accent: Some([0xd9, 0xa4, 0x41]),
     developer: "Aetherion Nation",
-    ..craft_update::app::App::new("soundcraft", "Atelier Frequency", "Recording, editing and mixing audio", "Aetherion-Nation-Builders/atelier-frequency")
+    ..craft_update::app::App::new(
+        "soundcraft",
+        "Atelier Frequency",
+        "Recording, editing and mixing audio",
+        "Aetherion-Nation-Builders/atelier-frequency",
+    )
 };
 
 pub mod appearance;

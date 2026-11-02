@@ -65,7 +65,7 @@ fn assert_refused(got: &Invoke, port: u16) {
 fn top_level_help_lists_every_subcommand_on_stdout() {
     let long = invoke(&["--help"]);
     let help = assert_help(&long);
-    assert!(help.starts_with("soundcraft-cli: SoundCraft without a window\n\nUsage: soundcraft-cli <COMMAND>\n"), "{help}");
+    assert!(help.starts_with("soundcraft-cli: Atelier Frequency without a window\n\nUsage: soundcraft-cli <COMMAND>\n"), "{help}");
     for sub in ["info", "convert", "run", "script", "commands", "describe", "app", "mcp", "parity", "plugins", "help"] {
         assert!(help.contains(&format!("\n  {sub} ")), "{sub}: {help}");
     }
