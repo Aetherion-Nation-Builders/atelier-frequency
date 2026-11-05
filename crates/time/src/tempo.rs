@@ -1,6 +1,6 @@
 //! Tempo and meter maps: the conversion between musical time (ticks) and samples.
 
-use crate::{SampleRate, Samples, TimeError, to_samples};
+use crate::{MAX_POSITION, SampleRate, Samples, TimeError, to_samples};
 
 /// Ticks per quarter note (Pro Tools' resolution).
 pub const TICKS_PER_QUARTER: i64 = 960;
@@ -74,17 +74,17 @@ impl TempoMap {
         &self.meters
     }
 
-    /// Repair a map read from a file: only valid tempos and meters, in tick order, with one of each
-    /// at tick 0.
+    /// Repair a map read from a file: only valid tempos and meters within `0..=MAX_POSITION` ticks, in
+    /// tick order, with one of each at tick 0.
     pub fn sanitize(&mut self) {
-        self.tempos.retain(|e| e.tick >= 0 && valid_bpm(e.bpm).is_ok());
+        self.tempos.retain(|e| (0..=MAX_POSITION).contains(&e.tick) && valid_bpm(e.bpm).is_ok());
         self.tempos.sort_by_key(|e| e.tick);
         self.tempos.dedup_by_key(|e| e.tick);
         if self.tempos.first().is_none_or(|e| e.tick > 0) {
             let bpm = self.tempos.first().map_or(120.0, |e| e.bpm);
             self.tempos.insert(0, TempoEvent { tick: 0, bpm });
         }
-        self.meters.retain(|m| m.tick >= 0 && valid_meter(m.numerator, m.denominator));
+        self.meters.retain(|m| (0..=MAX_POSITION).contains(&m.tick) && valid_meter(m.numerator, m.denominator));
         self.meters.sort_by_key(|m| m.tick);
         self.meters.dedup_by_key(|m| m.tick);
         if self.meters.first().is_none_or(|m| m.tick > 0) {
@@ -251,10 +251,10 @@ impl TempoMap {
         for (i, m) in self.meters.iter().enumerate() {
             let next_tick = self.meters.get(i + 1).map(|n| n.tick);
             let tpb = m.ticks_per_bar();
-            let bars_in_seg = next_tick.map(|nt| ((nt - cur_tick) + tpb - 1) / tpb);
+            let bars_in_seg = next_tick.map(|nt| ceil_div(nt.saturating_sub(cur_tick), tpb));
             match bars_in_seg {
-                Some(n) if bar >= cur_bar + n => {
-                    cur_bar += n;
+                Some(n) if bar >= cur_bar.saturating_add(n) => {
+                    cur_bar = cur_bar.saturating_add(n);
                     cur_tick = next_tick.unwrap_or(cur_tick);
                 }
                 _ => return cur_tick.saturating_add((bar - cur_bar).saturating_mul(tpb)),
@@ -268,9 +268,12 @@ impl TempoMap {
         let first = self.meter_at_tick(0);
         if tick < 0 {
             let tpb = first.ticks_per_bar();
-            let bars_back = (-tick + tpb - 1) / tpb;
-            let bar_tick = -bars_back * tpb;
-            let within = tick - bar_tick;
+            let abs = tick.unsigned_abs();
+            let tpb_u = tpb.unsigned_abs();
+            let bars_back_u = abs / tpb_u + u64::from(!abs.is_multiple_of(tpb_u));
+            let bars_back = i64::try_from(bars_back_u).unwrap_or(i64::MAX);
+            // Offset of `tick` inside its bar, without negating `i64::MIN`.
+            let within = ((tpb_u - abs % tpb_u) % tpb_u) as i64;
             let beat_t = first.ticks_per_beat();
             return BarBeat { bar: 1 - bars_back, beat: within / beat_t + 1, tick: within % beat_t };
         }
@@ -281,7 +284,7 @@ impl TempoMap {
             if let Some(n) = self.meters.get(i + 1)
                 && tick >= n.tick
             {
-                bar += ((n.tick - seg_tick) + tpb - 1) / tpb;
+                bar = bar.saturating_add(ceil_div(n.tick.saturating_sub(seg_tick), tpb));
                 seg_tick = n.tick;
                 continue;
             }
@@ -298,7 +301,7 @@ impl TempoMap {
     pub fn tick_at_bar_beat(&self, bb: BarBeat) -> i64 {
         let start = self.bar_start_tick(bb.bar);
         let m = self.meter_at_tick(start);
-        start.saturating_add((bb.beat - 1).max(0).saturating_mul(m.ticks_per_beat())).saturating_add(bb.tick)
+        start.saturating_add(bb.beat.saturating_sub(1).max(0).saturating_mul(m.ticks_per_beat())).saturating_add(bb.tick)
     }
 
     pub fn bar_beat_at(&self, s: Samples, sr: SampleRate) -> BarBeat {
@@ -320,6 +323,11 @@ impl TempoMap {
     }
 }
 
+/// Ceiling division for a non-negative `num` and positive `den`, without overflow.
+fn ceil_div(num: i64, den: i64) -> i64 {
+    num / den + i64::from(num % den != 0)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -335,10 +343,35 @@ mod tests {
     }
 
     #[test]
+    fn meter_near_max_tick_does_not_overflow() {
+        let mut m = TempoMap::default();
+        m.set_meter(i64::MAX, 7, 8).unwrap();
+        let bb = m.bar_beat_at_tick(i64::MAX);
+        assert!(bb.bar > 1);
+        assert!(m.bar_start_tick(bb.bar) > 0);
+        assert!(m.bar_start_tick(i64::MAX) > 0);
+    }
+
+    #[test]
     fn minimum_bar_saturates_instead_of_overflowing() {
         let m = TempoMap::default();
         assert_eq!(m.bar_start_tick(i64::MIN), i64::MIN);
         assert_eq!(m.bar_start_tick(0), -TICKS_PER_QUARTER * 4);
+    }
+
+    #[test]
+    fn minimum_beat_is_clamped_without_overflow() {
+        let m = TempoMap::default();
+        assert_eq!(m.tick_at_bar_beat(BarBeat { bar: 1, beat: i64::MIN, tick: 0 }), 0);
+    }
+
+    #[test]
+    fn bar_beat_at_min_tick_does_not_overflow() {
+        let m = TempoMap::default();
+        let bb = m.bar_beat_at_tick(i64::MIN);
+        assert!(bb.bar < 1);
+        assert!(bb.beat >= 1 && bb.tick >= 0);
+        assert_eq!(m.bar_beat_at_tick(-1).bar, 0);
     }
 
     #[test]
@@ -384,6 +417,17 @@ mod tests {
         let mut empty = TempoMap { tempos: Vec::new(), meters: Vec::new() };
         empty.sanitize();
         assert_eq!(empty, TempoMap::default());
+    }
+
+    #[test]
+    fn sanitize_drops_events_beyond_the_position_range() {
+        let mut m = TempoMap {
+            tempos: vec![TempoEvent { tick: 0, bpm: 120.0 }, TempoEvent { tick: i64::MAX, bpm: 90.0 }],
+            meters: vec![MeterEvent { tick: 0, numerator: 4, denominator: 4 }, MeterEvent { tick: i64::MAX, numerator: 3, denominator: 4 }],
+        };
+        m.sanitize();
+        assert_eq!(m, TempoMap::default());
+        assert_eq!(m.bar_start_tick(2), TICKS_PER_QUARTER * 4);
     }
 
     #[test]
