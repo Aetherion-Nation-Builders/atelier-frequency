@@ -273,13 +273,10 @@ fn spell(pitch: u8) -> (char, i32, i32) {
 }
 
 fn xml_escape(s: &str) -> String {
-    s.chars()
-        .filter(|c| matches!(c, '\t' | '\n' | '\r' | '\u{20}'..='\u{D7FF}' | '\u{E000}'..='\u{FFFD}' | '\u{10000}'..='\u{10FFFF}'))
-        .collect::<String>()
-        .replace('&', "&amp;")
-        .replace('<', "&lt;")
-        .replace('>', "&gt;")
-        .replace('"', "&quot;")
+    // Keep the score export's existing literal whitespace and quote spelling. The
+    // shared attribute writer owns XML legality/escaping; only its generated
+    // whitespace references are restored (input ampersands were escaped first).
+    craft_xml::esc_attr(s).replace("&#9;", "\t").replace("&#10;", "\n").replace("&#13;", "\r")
 }
 
 fn note_type(units: u32) -> (&'static str, bool) {
@@ -418,7 +415,9 @@ fn svg_budgeted(parts: &[Part], setup: &ScoreSetup, budget: usize) -> Result<Str
     const STAFF_GAP: f64 = 70.0;
     const SYSTEM_GAP: f64 = 40.0;
     let n_measures = parts.iter().map(|p| p.measures.len()).max().unwrap_or(0);
-    let per = setup.bars_per_system.max(1) as usize;
+    // The layout range the setup offers (1 to 16): a caller's own value can't multiply the
+    // barlines drawn per system beyond it.
+    let per = setup.bars_per_system.clamp(1, 16) as usize;
     let systems = n_measures.div_ceil(per).max(1);
     let label_w = if setup.show_track_names { 70.0 } else { 0.0 };
     let staff_x0 = MARGIN + label_w + 34.0;
@@ -609,6 +608,14 @@ mod tests {
     use super::*;
 
     #[test]
+    fn shared_xml_escaping_preserves_score_bytes() {
+        let input = "<&>\"'\t\n\r\0\u{1f}\u{fffe}\u{ffff}é𝄞&#9;&#10;&#13;";
+        assert_eq!(xml_escape(input), "&lt;&amp;&gt;&quot;'\t\n\ré𝄞&amp;#9;&amp;#10;&amp;#13;");
+        assert_eq!(xml_escape(""), "");
+        assert_eq!(xml_escape("Already &amp; escaped"), "Already &amp;amp; escaped");
+    }
+
+    #[test]
     fn split_units_uses_representable_values() {
         assert_eq!(split_units(16), vec![16]);
         assert_eq!(split_units(5), vec![4, 1]);
@@ -780,6 +787,14 @@ mod tests {
         let total: u32 = m.items.iter().map(|i| i.units).sum();
         assert_eq!(total, 256, "the bar still lasts 256 sixteenths");
         assert!(m.items.iter().any(|i| i.pitches.is_empty()), "the discarded suffix became rests");
+    }
+
+    #[test]
+    fn bars_per_system_is_held_to_the_supported_range() {
+        let setup = ScoreSetup { title: "t".into(), composer: String::new(), bars_per_system: u32::MAX, show_track_names: false };
+        let part = Part { name: "p".into(), bass: false, measures: vec![Measure { numerator: 4, denominator: 4, items: Vec::new() }] };
+        let out = svg_budgeted(std::slice::from_ref(&part), &setup, 1 << 20).unwrap();
+        assert_eq!(out.matches("stroke-width=\"1\"").count(), 16, "sixteen barlines, not billions");
     }
 
     #[test]

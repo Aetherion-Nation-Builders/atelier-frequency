@@ -2,8 +2,8 @@
 
 Atelier Frequency is SoundCraft with a different name on the door. We keep the change small on
 purpose: upstream lands many changes a day, and every file we touch is a file that can conflict
-when we pull them in. SoundCraft has no translation catalogs yet (English only), so the rename
-is a plain rename of the strings a person reads.
+when we pull them in. The rename is a plain rename of the English strings a person reads; the UI
+catalogs are keyed by those English strings (see Translations below).
 
 **Renamed (what a person sees):** the window title, the app menu, the About box and its links,
 the session file type name in open and save dialogs, the browser page title, Windows file
@@ -39,6 +39,13 @@ Still upstream's name, to be done in later passes: the `<software>` tag in expor
 ## Renaming the product
 
 Search the tree for the name in string literals
-(`grep -rn '"[^"]*Atelier Frequency' crates apps packaging`) and change each; there is no
-translation layer to update yet. When upstream adds catalogs, add an `identity.rs` as in
-Pigment and Quill.
+(`grep -rn '"[^"]*Atelier Frequency' crates apps packaging`) and change each, then the brand
+catalog below.
+
+## Translations
+
+Upstream's catalogs (`crates/ui-egui/locales/<lang>/mod.rs`, Brazilian Portuguese so far) are
+keyed by SoundCraft's English strings and stay untouched. Our renamed strings have their own rows
+in `crates/ui-egui/locales/pt-BR/brand.rs`, looked up first (`crates/ui-egui/src/localization.rs`,
+module `pt_br`). When a rebrand changes a localized string, add its row there; when upstream adds
+a language, add a `brand.rs` for it, translated from meaning.

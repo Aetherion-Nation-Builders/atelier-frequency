@@ -97,8 +97,8 @@ where things are.
   playlist per take, input monitoring through the full channel strip, and autosave with recovery.
 - **Time and tempo:** Bars|Beats, Min:Secs, Timecode (every rate, drop-frame included),
   Feet+Frames and Samples; tempo and meter maps with a tempo editor; linear, parabolic and
-  S-curve tempo ramps; key signatures and detected chords; Beat Detective and Identify Beat;
-  pitch-preserving Elastic warping.
+  S-curve tempo ramps; key signatures and detected chords; Beat Analysis and Identify Beat;
+  pitch-preserving Elastic Audio warping.
 - **Audio files:** WAV/BWF/RF64, AIFF/AIFC and FLAC in and out; MP3, Ogg Vorbis, AAC, ALAC, CAF
   and the audio of MP4/MOV movies in. Any sample rate and bit depth.
 - **Bounce:** mix or stems to WAV, AIFF or FLAC at 16/24/32-bit float with optional dither and
@@ -109,7 +109,7 @@ where things are.
 ## Getting started
 
 Download a build from the [releases page](https://github.com/storytold/soundcraft/releases), or build
-from source with a recent stable Rust:
+from source with Rust 1.95 or later:
 
 ```sh
 git clone https://github.com/storytold/soundcraft
@@ -129,6 +129,16 @@ Useful shortcuts: <kbd>Space</kbd> play/stop, <kbd>⌘</kbd><kbd>=</kbd> Mix/Edi
 <kbd>F1</kbd>–<kbd>F4</kbd> edit modes, <kbd>F5</kbd>–<kbd>F10</kbd> tools, <kbd>⌘</kbd><kbd>E</kbd>
 separate, <kbd>⌘</kbd><kbd>D</kbd> duplicate, <kbd>Enter</kbd> new marker, <kbd>⌘</kbd><kbd>⇧</kbd><kbd>N</kbd>
 new tracks. **Setup › Keyboard Shortcuts** lists them all.
+
+In **New Tracks**, each row has its own count, format, type, Samples/Ticks timebase and name.
+Use **+** to add a row below or **−** to remove it; **Create** makes all rows in order, with one
+Undo step (up to 128 tracks per creation). The last row stays available. The dropdown widths
+fit their longest option and remain fixed when the selection changes.
+
+On macOS, **⌘←/→** changes the active row's format, **⌘↑/↓** its type (also with **⌃**),
+and **⌥⌘↑/↓** its timebase. **⇧⌃⌘↓/↑** adds/removes the active row, also with **⌥**;
+**⇧⌘↓/↑** works too. Windows/Linux use **Ctrl** for **⌘**. The active row follows the
+field you click. A new row starts with its count focused and selected; Enter creates and Escape cancels.
 
 ### Logs
 
@@ -180,7 +190,8 @@ soundcraft-cli mcp --automation-read-root DIR --automation-write-root DIR
 
 See [`docs/cli.md`](docs/cli.md) for the command-line tool (subcommands, exit codes, environment
 variables, man pages and completions), [`docs/control-protocol.md`](docs/control-protocol.md) and
-[`docs/mcp.md`](docs/mcp.md). `soundcraft-cli commands` lists every command.
+[`docs/mcp.md`](docs/mcp.md). `soundcraft-cli commands` lists every command (`--json` for each
+one's parameters and details, as JSON).
 
 Open **SoundCraft › Session Audio Health** to check loaded audio availability, sample-rate
 mismatches and clip source bounds across all playlists, including alternate takes. The report
@@ -195,11 +206,10 @@ about egui, so the interface could be swapped for another one.
 
 | Crate | What it does |
 |---|---|
-| `soundcraft-time` | Timebases, tempo and meter maps, timecode, grid |
-| `soundcraft-audio-io` | Audio file formats and waveform overviews |
+| `soundcraft-time` | Compatibility re-export of `craft-time`'s SoundCraft sample-index API |
 | `soundcraft-midi` | Standard MIDI Files and MIDI operations |
 | `soundcraft-dsp` | Plugins, offline processing, meters, loudness, FFT |
-| `soundcraft-model` | The session document |
+| `soundcraft-model` | Compatibility re-export of `craft-scraft-format`'s schema, validation and JSON API |
 | `soundcraft-mix` | The mix engine (realtime and offline share it) |
 | `soundcraft-engine` | Commands, undo, editing, import/export, bounce |
 | `soundcraft-playback` | Audio devices (CoreAudio, WASAPI, ALSA, WebAudio) and recording |
@@ -216,8 +226,18 @@ SoundCraft is **pre-alpha**: it covers 94 % of the incumbent's menu items (measu
 its features by presence, and is roughly 40 % of the way to replacing it for real work: record,
 edit, mix and bounce work end to end, but choosing an audio interface and buffer size,
 recording MIDI from a controller and session interchange (AAF/OMF) are still missing, and those
-are the alpha checklist. Translations are missing too. The status, the stage and our effort
-estimates are in [`ROADMAP.md`](ROADMAP.md); the full assessment is in
+are the alpha checklist.
+
+**Translations:** the Brazilian Portuguese (`pt-BR`) catalog is **100 % complete** for every fixed
+UI string found in the current source — menus, dialogs and buttons, tooltips (including those
+localized inside buttons and toggles), accessibility names, the Edit-window status bar, the
+remove-session question, formatted messages, engine error templates and engine error text at display
+time. All these entries are covered by a test, placeholders match, keys are unique, and the
+`pt-BR` catalog is chosen automatically when `ui.language` is `pt-BR` (or "Portuguese (Brazil)")
+under `Setup › Appearance`. Engine errors keep their run-time values and a decimal comma in
+`pt-BR`. The remaining localization work is a native-speaker (human) review of wording plus CJK /
+Devanagari / Arabic font fallbacks and RTL layout — not new UI translation. The status, the stage
+and our effort estimates are in [`ROADMAP.md`](ROADMAP.md); the full assessment is in
 [`docs/target-app-parity.md`](docs/target-app-parity.md), the ranked list of what's missing in
 [`docs/gaps.md`](docs/gaps.md), and the menu-by-menu comparison in
 [`docs/parity-checklist.md`](docs/parity-checklist.md). Bug reports and wish lists are
